@@ -34,9 +34,9 @@ Custom node package for ComfyUI that provides an interactive OpenPose editor nod
 ## Installation
 
 1. Clone or copy this repository into your ComfyUI custom nodes directory:
-   - `ComfyUI/custom_nodes/ComfyUi_NakoNode`
-2. Install dependencies in your ComfyUI environment:
-   - `pip install -r ComfyUI/custom_nodes/ComfyUi_NakoNode/requirements.txt`
+   - `git clone https://github.com/nakoland/ComfyUi_NakoNode.git`
+2. Navigate into the cloned folder and install dependencies in your ComfyUI environment:
+   - `pip install -r ./requirements.txt`
 3. Restart ComfyUI.
 
 ## Node
