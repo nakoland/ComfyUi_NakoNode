@@ -2,8 +2,19 @@
 
 Custom node package for ComfyUI that provides an interactive OpenPose editor node with optional ControlNet conditioning.
 
-## Features
+## Representative Screenshots
 
+### OverView
+
+![Overview1](docs/images/nako-pose-workflow.png)
+
+![Overview2](docs/images/nako-pose-workflow2.png)
+
+### Editor
+
+![Nako Pose Editor](docs/images/nako-pose-editor.png)
+
+## Features
 - Interactive pose editor UI inside ComfyUI
 - Outputs pose image, keypoints, and pose JSON
 - Optional ControlNet apply flow from the same node
@@ -54,18 +65,22 @@ Custom node package for ComfyUI that provides an interactive OpenPose editor nod
 - `POSE_KEYPOINT`: pose keypoint object
 - `pose_json_input`: external JSON string input
 - `pose_input_enabled`: switch for external pose input handling
-- `positive`, `negative`: conditioning inputs for ControlNet apply
-- `controlnet_enabled`, `controlnet_model`, `controlnet_strength`, `controlnet_start_percent`, `controlnet_end_percent`
-- `pose_tag_input`: tag parser input
+- `positive`, `negative`: conditioning inputs
+- `controlnet_enabled`: when `On`, applies pose ControlNet to `positive`/`negative` conditioning
+- `controlnet_model`, `controlnet_strength`, `controlnet_start_percent`, `controlnet_end_percent`: configurable ControlNet values from the node `Settings (⚙)` popup
+- Pose source/application priority: `pose_tag_input` > `pose_input_enabled` > `Preset`
+- `pose_tag_input`: if a pose tag exists, ControlNet is applied by tag settings regardless of `controlnet_enabled`
 
-### Outputs
+### pose_tag_input
 
-- `POSE_IMAGE`
-- `POSE_KEYPOINT`
-- `POSE_JSON`
-- `positive`
-- `negative`
-- `cnet_info`
+![Overview1](docs/images/pose-tag.png)
+
+- The pose tag is one of the most useful features of this node.
+- `pose_tag_input` automatically detects pose tags from the input text, allowing it to be used seamlessly within your prompts.
+- By leveraging these features, it can be used not only with wildcards but also as a combined prompt + pose preset.
+- `pose_tag_input` parser: `<pose-PRESET:STRENGTH:START:END>`
+- Example: `<pose-standing:1.0>` uses preset `standing` (if it exists) and applies strength `1.0`; start/end use current settings.
+- `<pose-...>` autocomplete is supported when `comfyui-custom-scripts (pysssss)` is installed.
 
 ## pose_tag_input Syntax
 
@@ -82,12 +97,6 @@ Examples:
 <pose-standing:1.0>
 <pose-standing:0.9:0:70>
 ```
-
-Notes:
-
-- `PRESET_NAME` is loaded from `Presets/openpose-preset.json`.
-- If a valid pose tag is provided, preset pose data is prioritized.
-- Numeric values are optional; omitted fields keep node widget values.
 
 ## Preset Files
 
@@ -109,6 +118,9 @@ Notes:
 
 - If `controlnet_model` is `none` (or missing), ControlNet is not applied.
 - When pose input is empty or invalid, the node falls back to a default pose.
+- `PRESET_NAME` is loaded from `Presets/openpose-preset.json`.
+- If a valid pose tag is provided, preset pose data is prioritized and ControlNet is applied even when `controlnet_enabled` is `Off`.
+- Numeric values are optional; omitted fields keep current `Settings (⚙)` values.
 
 ## Support
 
@@ -118,3 +130,4 @@ Your support helps ongoing maintenance and future updates.
 - USDT (TRON / TRC20): `THdCx981bTQtnJ98dFyhmmspFNwxo9Uv2D`
 
 Thank you so much for your support.
+
