@@ -85,14 +85,14 @@ Examples:
 
 Notes:
 
-- `PRESET_NAME` is loaded from `Presets/pose-preset.json`.
+- `PRESET_NAME` is loaded from `Presets/openpose-preset.json`.
 - If a valid pose tag is provided, preset pose data is prioritized.
 - Numeric values are optional; omitted fields keep node widget values.
 
 ## Preset Files
 
 - Pose preset file:
-  - `Presets/pose-preset.json`
+  - `Presets/openpose-preset.json`
 - Pose preset thumbnail assets:
   - `Presets/openpose-preset.json.assets/`
 

@@ -193,7 +193,7 @@ class NakoOpenPoseEditor:
         try:
             preset_file = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                "../Presets/pose-preset.json"
+                "../Presets/openpose-preset.json"
             )
             if not os.path.exists(preset_file):
                 return None
