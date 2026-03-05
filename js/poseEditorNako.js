@@ -555,10 +555,42 @@ async function fetchPosePresetThumbnails() {
     return await response.json();
 }
 
+async function importPysssssAutocompleteModule() {
+    const candidates = [
+        "/extensions/ComfyUI-Custom-Scripts/js/common/autocomplete.js",
+        "/extensions/comfyui-custom-scripts/js/common/autocomplete.js",
+        "/extensions/pysssss/js/common/autocomplete.js",
+    ];
+
+    for (const path of candidates) {
+        try {
+            return await import(path);
+        } catch {
+            // Try next candidate path.
+        }
+    }
+
+    try {
+        const response = await fetch("/extensions");
+        if (!response.ok) return null;
+        const files = await response.json();
+        if (!Array.isArray(files)) return null;
+
+        const matchedPath = files.find((p) => {
+            const v = String(p || "").toLowerCase();
+            return v.endsWith("/js/common/autocomplete.js") && v.includes("/extensions/") && v.includes("custom-scripts");
+        });
+        return matchedPath ? await import(matchedPath) : null;
+    } catch {
+        return null;
+    }
+}
+
 // pysssss 자동완성 연동: <pose-프리셋명> 단어 목록 등록
 async function registerNakoPoseWordsWithPysssss() {
     try {
-        const mod = await import("/extensions/ComfyUI-Custom-Scripts/js/common/autocomplete.js");
+        const mod = await importPysssssAutocompleteModule();
+        if (!mod) return;
         const { TextAreaAutoComplete } = mod;
         if (!TextAreaAutoComplete?.updateWords) return;
 
