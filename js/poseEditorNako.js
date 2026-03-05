@@ -1,9 +1,10 @@
 import { app } from "../../scripts/app.js";
 import { ComfyDialog, $el } from "../../scripts/ui.js";
 import { ComfyApp } from "../../scripts/app.js";
+import { initNakoI18n, t, getTranslations } from "./nako_i18n.js";
 
 // Cache-bust local editor when poseEditorNako.html changes.
-const LOCAL_EDITOR_SRC = new URL("./poseEditorNako.html?v=pose_groups_20260225_face_neck_bg_off_thumb_fix", import.meta.url).toString();
+const LOCAL_EDITOR_SRC = new URL("./poseEditorNako.html?v=pose_groups_20260305_i18n", import.meta.url).toString();
 const EDITOR_CANDIDATE_SRCS = [LOCAL_EDITOR_SRC];
 
 // ── Toolbar 상수 ─────────────────────────────────────────────────────────────
@@ -226,7 +227,7 @@ function toggleNakoPoseSettingsPopup(node) {
         closeNakoPosePopup(node, "settings");
         return;
     }
-    createNakoPosePopup(node, "settings", "Pose Editor 설정");
+    createNakoPosePopup(node, "settings", t("settings_title"));
     const body = node._nakoPosePopups?.settings?.body;
     if (!body) return;
 
@@ -262,7 +263,7 @@ function toggleNakoPoseSettingsPopup(node) {
     if (modelList.length === 0) {
         const opt = document.createElement("option");
         opt.value = "none";
-        opt.textContent = "(설치된 모델 없음)";
+        opt.textContent = t("no_models_installed");
         modelSelect.appendChild(opt);
     } else {
         for (const m of modelList) {
@@ -321,7 +322,7 @@ function toggleNakoPoseSettingsPopup(node) {
         return wrap;
     };
 
-    body.appendChild(makeSmallLabel("강도 / 시작 % / 종료 %"));
+    body.appendChild(makeSmallLabel(t("controlnet_params_label")));
     body.appendChild(makeSlider("Strength",  "controlnet_strength",       0,   2, 0.05, 2));
     body.appendChild(makeSlider("Start %",   "controlnet_start_percent",  0, 100, 5,   0));
     body.appendChild(makeSlider("End %",     "controlnet_end_percent",    0, 100, 5,   0));
@@ -359,7 +360,7 @@ function toggleNakoPoseSettingsPopup(node) {
         node.setDirtyCanvas?.(true, true);
     });
     const jsonLabel = document.createElement("span");
-    jsonLabel.textContent = "POSE_JSON 위젯 표시";
+    jsonLabel.textContent = t("show_pose_json_widget");
     jsonRow.appendChild(jsonCb);
     jsonRow.appendChild(jsonLabel);
     body.appendChild(jsonRow);
@@ -371,17 +372,17 @@ function toggleNakoPoseHelpPopup(node) {
         closeNakoPosePopup(node, "help");
         return;
     }
-    createNakoPosePopup(node, "help", "Pose Editor 도움말");
+    createNakoPosePopup(node, "help", t("help_title"));
     const body = node._nakoPosePopups?.help?.body;
     if (!body) return;
 
     const sections = [
-        ["⚙ 설정 패널",          "ControlNet 모델·강도·시작%·끝% 조절\nPOSE_JSON 위젯 표시 여부 토글"],
-        ["Preset 콤보",           "'오픈포즈' 선택 시 목록 새로고침\n프리셋 선택 시 해당 포즈 JSON 로드"],
-        ["On / Off",        "ControlNet 적용 여부\nOFF 시 conditioning 그대로 바이패스"],
-        ["Open Pose Editor",      "인터랙티브 포즈 편집기 열기"],
-        ["pose_tag_input (연결)", "<pose-프리셋명:강도:시작%:종료%>\n태그를 파싱해 노드를 자동 제어\n생략된 파라미터는 노드 위젯값 사용"],
-        ["positive / negative 출력", "CN 적용된 conditioning 출력\nOff 또는 입력 미연결 시 바이패스"],
+        [t("help.settings_title"),     t("help.settings_desc")],
+        [t("help.preset_title"),       t("help.preset_desc")],
+        [t("help.onoff_title"),        t("help.onoff_desc")],
+        [t("help.open_editor_title"),  t("help.open_editor_desc")],
+        [t("help.pose_tag_title"),     t("help.pose_tag_desc")],
+        [t("help.conditioning_title"), t("help.conditioning_desc")],
     ];
 
     for (const [title, desc] of sections) {
@@ -536,20 +537,20 @@ function getNodeBackgroundImage(node) {
 }
 
 async function fetchPosePresetTitles() {
-    const response = await fetch("/nako/pose_preset_titles");
+    const response = await fetch("/nako_openpose/pose_preset_titles");
     if (!response.ok) throw new Error("Failed to fetch pose preset titles");
     return await response.json();
 }
 
 async function fetchPosePresetContent(title) {
-    const response = await fetch(`/nako/pose_preset_content?presetTitle=${encodeURIComponent(title)}`);
+    const response = await fetch(`/nako_openpose/pose_preset_content?presetTitle=${encodeURIComponent(title)}`);
     if (!response.ok) throw new Error("Failed to fetch pose preset content");
     const data = await response.json();
     return data?.content ?? "";
 }
 
 async function fetchPosePresetThumbnails() {
-    const response = await fetch("/nako/pose_preset_thumbnails");
+    const response = await fetch("/nako_openpose/pose_preset_thumbnails");
     if (!response.ok) throw new Error("Failed to fetch pose preset thumbnails");
     return await response.json();
 }
@@ -566,7 +567,7 @@ async function registerNakoPoseWordsWithPysssss() {
 
         const words = {};
         for (const name of titles) {
-            if (name === "오픈포즈") continue;
+            if (name === "OpenPose(refresh)") continue;
             const tag = `<pose-${name}>`;
             words[tag] = { text: tag, hint: "pose" };
         }
@@ -698,7 +699,7 @@ async function refreshPosePresetCombo(node) {
         presetWidget.options = presetWidget.options || {};
         presetWidget.options.values = titles;
         if (!titles.includes(presetWidget.value)) {
-            presetWidget.value = titles[0] || "오픈포즈";
+            presetWidget.value = titles[0] || "OpenPose(refresh)";
         }
         node?.setDirtyCanvas?.(true, true);
         app?.graph?.setDirtyCanvas?.(true, true);
@@ -712,9 +713,9 @@ function ensurePosePresetWidgets(node) {
 
     let presetWidget = getWidget(node, "Preset");
     if (!presetWidget) {
-        presetWidget = node.addWidget("combo", "Preset", "오픈포즈", async (value) => {
+        presetWidget = node.addWidget("combo", "Preset", "OpenPose(refresh)", async (value) => {
             node.selectedPreset = value;
-            if (!value || value === "오픈포즈") {
+            if (!value || value === "OpenPose(refresh)") {
                 await node._nakoRefreshPosePresetTitles?.();
                 return;
             }
@@ -730,7 +731,7 @@ function ensurePosePresetWidgets(node) {
             } catch (e) {
                 console.error("NakoPoseEditor: preset content load failed", e);
             }
-        }, { values: ["오픈포즈"], serialize: false });
+        }, { values: ["OpenPose(refresh)"], serialize: false });
     }
 
     node._nakoRefreshPosePresetTitles = async () => {
@@ -837,7 +838,7 @@ function installPosePresetHoverPreview(node) {
         const thumb = getThumb(title);
         if (!thumb) {
             hide();
-            if (title !== "오픈포즈" && !missingThumbTitles.has(title)) {
+            if (title !== "OpenPose(refresh)" && !missingThumbTitles.has(title)) {
                 missingThumbTitles.add(title);
                 void ensureThumbsLoaded();
             }
@@ -992,7 +993,10 @@ class NakoPoseEditorDialog extends ComfyDialog {
         if (!this.iframeElement?.contentWindow) return;
         let poses;
         try { poses = JSON.parse(jsonString); } catch { poses = []; }
-        this.iframeElement.contentWindow.postMessage({ modalId: 0, poses, bgImage, poseInputEnabled }, "*");
+        this.iframeElement.contentWindow.postMessage(
+            { modalId: 0, poses, bgImage, poseInputEnabled, nakoTranslations: getTranslations() },
+            "*"
+        );
     }
 }
 
@@ -1006,14 +1010,15 @@ async function openEditorForNode(node) {
 
 // ── Extension 등록 ─────────────────────────────────────────────────────────────
 app.registerExtension({
-    name: "NakoPoseEditor",
+    name: "NakoOpenPoseEditor",
 
     async setup() {
+        await initNakoI18n();
         registerNakoPoseWordsWithPysssss();
     },
 
     async beforeRegisterNodeDef(nodeType, nodeData, appRef) {
-        if (nodeData.name !== "NakoPoseEditorNode") return;
+        if (nodeData.name !== "NakoOpenPoseEditor") return;
 
         // configure() 오버라이드: widgets_values를 이름:값 맵으로 캡처 (위치 기반 오배정 방지)
         const originalConfigure = nodeType.prototype.configure;

@@ -1,0 +1,20 @@
+{
+  "NakoOpenPoseEditor": {
+    "display_name": "OpenPose Editor(nako)",
+    "inputs": {
+      "background_image":        { "display_name": "Background Image" },
+      "pose_input_enabled":      { "display_name": "Pose Input" },
+      "pose_json_input":         { "display_name": "Pose JSON Input", "tooltip": "OpenPose JSON string input" },
+      "POSE_JSON":               { "display_name": "Pose JSON" },
+      "POSE_KEYPOINT":           { "display_name": "Pose Keypoint" },
+      "positive":                { "display_name": "Positive" },
+      "negative":                { "display_name": "Negative" },
+      "controlnet_enabled":      { "display_name": "ControlNet" },
+      "controlnet_model":        { "display_name": "Model" },
+      "controlnet_strength":     { "display_name": "Strength" },
+      "controlnet_start_percent":{ "display_name": "Start %" },
+      "controlnet_end_percent":  { "display_name": "End %" },
+      "pose_tag_input":          { "display_name": "Pose Tag", "tooltip": "<pose-name:strength:start%:end%> tag parser" }
+    }
+  }
+}

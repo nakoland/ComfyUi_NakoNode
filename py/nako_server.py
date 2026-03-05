@@ -21,10 +21,10 @@ def getPprPresetFile(idx):
     return os.path.join(os.path.dirname(__file__), f"../Presets/Preset{idx}.json")
 
 def getPosePresetFile():
-    return os.path.join(os.path.dirname(__file__), "../Presets/pose-preset.json")
+    return os.path.join(os.path.dirname(__file__), "../Presets/openpose-preset.json")
 
 def getPosePresetAssetDir():
-    return os.path.join(os.path.dirname(__file__), "../Presets/pose-preset.json.assets")
+    return os.path.join(os.path.dirname(__file__), "../Presets/openpose-preset.json.assets")
 
 def getPosePresetThumbIndexFile():
     return os.path.join(getPosePresetAssetDir(), "thumb_index.json")
@@ -34,7 +34,7 @@ def ensure_pose_preset_file():
     preset_dir = os.path.dirname(preset_file)
     os.makedirs(preset_dir, exist_ok=True)
 
-    defaults = {"오픈포즈": ""}
+    defaults = {"OpenPose(refresh)": ""}
     if not os.path.exists(preset_file):
         with open(preset_file, "w", encoding="utf-8") as f:
             json.dump(defaults, f, indent=4, ensure_ascii=False)
@@ -48,8 +48,8 @@ def ensure_pose_preset_file():
         except json.JSONDecodeError:
             data = {}
 
-    if "오픈포즈" not in data:
-        merged = {"오픈포즈": ""}
+    if "OpenPose(refresh)" not in data:
+        merged = {"OpenPose(refresh)": ""}
         for k, v in data.items():
             merged[k] = v
         data = merged
@@ -307,7 +307,7 @@ async def get_ppr_preset_titles(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-@PromptServer.instance.routes.get("/nako/pose_preset_titles")
+@PromptServer.instance.routes.get("/nako_openpose/pose_preset_titles")
 async def get_pose_preset_titles(request):
     try:
         _, data = ensure_pose_preset_file()
@@ -315,7 +315,7 @@ async def get_pose_preset_titles(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-@PromptServer.instance.routes.get("/nako/pose_preset_content")
+@PromptServer.instance.routes.get("/nako_openpose/pose_preset_content")
 async def get_pose_preset_content(request):
     try:
         title = (request.rel_url.query.get("presetTitle") or "").strip()
@@ -326,7 +326,7 @@ async def get_pose_preset_content(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-@PromptServer.instance.routes.get("/nako/pose_preset_thumbnails")
+@PromptServer.instance.routes.get("/nako_openpose/pose_preset_thumbnails")
 async def get_pose_preset_thumbnails(request):
     try:
         _, preset_data = ensure_pose_preset_file()
@@ -338,7 +338,7 @@ async def get_pose_preset_thumbnails(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-@PromptServer.instance.routes.post("/nako/pose_save_preset")
+@PromptServer.instance.routes.post("/nako_openpose/pose_save_preset")
 async def pose_save_preset(request):
     try:
         payload = await request.json()
@@ -348,21 +348,21 @@ async def pose_save_preset(request):
         thumbnail_data_url = payload.get("thumbnailDataUrl", "")
         if not title:
             return web.json_response({"error": "title is required"}, status=400)
-        if title == "오픈포즈":
-            return web.json_response({"error": "'오픈포즈' is reserved"}, status=400)
+        if title == "OpenPose(refresh)":
+            return web.json_response({"error": "'OpenPose(refresh)' is reserved"}, status=400)
 
         preset_file, presets = ensure_pose_preset_file()
         if title in presets:
             del presets[title]
 
         # Keep symbolic header out of insertion list; it must always remain first.
-        symbolic_value = presets.get("오픈포즈", "")
-        body_items = [(k, v) for k, v in presets.items() if k != "오픈포즈"]
+        symbolic_value = presets.get("OpenPose(refresh)", "")
+        body_items = [(k, v) for k, v in presets.items() if k != "OpenPose(refresh)"]
         new_presets = {}
         inserted = False
 
         # Never allow insertion before symbolic header.
-        if insert_before == "오픈포즈":
+        if insert_before == "OpenPose(refresh)":
             insert_before = "__TOP__"
 
         if insert_before == "__BOTTOM__":
@@ -370,7 +370,7 @@ async def pose_save_preset(request):
             new_presets[title] = content
             inserted = True
         elif insert_before == "__TOP__":
-            # "__TOP__" means top of actual presets, i.e. just below "오픈포즈".
+            # "__TOP__" means top of actual presets, i.e. just below "OpenPose(refresh)".
             new_presets[title] = content
             for k, v in body_items:
                 new_presets[k] = v
@@ -385,7 +385,7 @@ async def pose_save_preset(request):
                 new_presets[title] = content
 
         # Rebuild with symbolic first.
-        merged = {"오픈포즈": symbolic_value}
+        merged = {"OpenPose(refresh)": symbolic_value}
         for k, v in new_presets.items():
             merged[k] = v
 
@@ -402,14 +402,14 @@ async def pose_save_preset(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-@PromptServer.instance.routes.delete("/nako/pose_delete_preset")
+@PromptServer.instance.routes.delete("/nako_openpose/pose_delete_preset")
 async def pose_delete_preset(request):
     try:
         title = (request.rel_url.query.get("presetTitle") or "").strip()
         if not title:
             return web.json_response({"error": "presetTitle is required"}, status=400)
-        if title == "오픈포즈":
-            return web.json_response({"error": "'오픈포즈' cannot be deleted"}, status=400)
+        if title == "OpenPose(refresh)":
+            return web.json_response({"error": "'OpenPose(refresh)' cannot be deleted"}, status=400)
 
         preset_file, presets = ensure_pose_preset_file()
         if title not in presets:

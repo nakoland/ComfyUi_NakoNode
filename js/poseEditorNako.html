@@ -82,6 +82,15 @@
   <main id="canvas-wrap"><canvas id="pose" width="512" height="768" tabindex="0"></canvas></main>
 
   <script>
+    // ── i18n ─────────────────────────────────────────────────────────────────
+    let _NT = {};
+    function _nt(key) {
+      const result = key.split('.').reduce(
+        (o, k) => (o && typeof o === 'object') ? o[k] : undefined, _NT
+      );
+      return (result !== undefined && result !== null && typeof result !== 'object') ? result : null;
+    }
+
     // OpenPose COCO-18 limb sequence (0-based).
     const BODY_EDGES = [
       [1,2],[1,5],[2,3],[3,4],[5,6],[6,7],
@@ -784,7 +793,7 @@
             const gLocked=PARTS_BY_GROUP[g.id].every((part)=>m.partLocks[part.id]===true);
             bLock.textContent=gLocked?'🔒':'🔓';
             const bFlip=mk('⇋',false,'Group flip');
-            const gLabel=document.createElement('span'); gLabel.textContent=g.label;
+            const gLabel=document.createElement('span'); gLabel.textContent=_nt('body_groups.'+g.id)||g.label;
             gLeft.append(bOpen,bEye,bSel,bLock,bFlip,gLabel);
             gRow.append(gLeft, document.createElement('span'));
             detail.appendChild(gRow);
@@ -816,7 +825,7 @@
                 const pLeft=document.createElement('div'); pLeft.className='joint-left'+(partVisible(p,part)?'':' off');
                 const pEye=document.createElement('button'); pEye.className='icon-btn'; pEye.textContent=partVisible(p,part)?'👁':'🚫'; pEye.title='Part visibility';
                 const pLock=document.createElement('button'); pLock.className='icon-btn'; pLock.textContent=(m.partLocks[part.id]===true)?'🔒':'🔓'; pLock.title='Part lock';
-                const pLabel=document.createElement('span'); pLabel.textContent=`└ ${part.label}`;
+                const pLabel=document.createElement('span'); pLabel.textContent='└ '+(_nt('body_parts.'+part.id)||part.label);
                 pLeft.append(pEye,pLock,pLabel);
                 const pReset=document.createElement('button'); pReset.className='joint-btn'; pReset.textContent='Reset'; pReset.title='Reset this part to initial default';
                 pRow.append(pLeft,pReset);
@@ -899,6 +908,7 @@
     }
 
     function load(msg){
+      if (msg.nakoTranslations && typeof msg.nakoTranslations === 'object') { _NT = msg.nakoTranslations; }
       state.modalId=Number.isInteger(msg.modalId)?msg.modalId:0;
       const poses=Array.isArray(msg.poses)?msg.poses:(msg.poses?[msg.poses]:[]);
       const f=poses[0]||{people:[makePerson()],canvas_width:512,canvas_height:768};
@@ -1029,13 +1039,13 @@
     }
 
     async function fetchPosePresetTitles(){
-      const res = await fetch('/nako/pose_preset_titles');
+      const res = await fetch('/nako_openpose/pose_preset_titles');
       if(!res.ok) throw new Error('Failed to load pose preset titles');
       return await res.json();
     }
     async function savePosePreset(title, content, insertBefore){
       const thumb = buildPresetThumbnailDataUrl();
-      const res = await fetch('/nako/pose_save_preset', {
+      const res = await fetch('/nako_openpose/pose_save_preset', {
         method:'POST',
         headers:{'Content-Type':'application/json; charset=UTF-8'},
         body:JSON.stringify({title, content, insertBefore, thumbnailDataUrl: thumb})
@@ -1049,8 +1059,8 @@
     }
     async function deletePosePreset(title){
       const t=(title||'').trim();
-      if(!t || t==='오픈포즈') throw new Error('삭제할 프리셋을 선택하세요.');
-      const res = await fetch(`/nako/pose_delete_preset?presetTitle=${encodeURIComponent(t)}`, { method:'DELETE' });
+      if(!t || t==='OpenPose(refresh)') throw new Error(_nt('dialog.select_preset_to_delete')||'삭제할 프리셋을 선택하세요.');
+      const res = await fetch(`/nako_openpose/pose_delete_preset?presetTitle=${encodeURIComponent(t)}`, { method:'DELETE' });
       if(!res.ok){
         let msg='Failed to delete preset';
         try{ msg = await res.text(); }catch{}
@@ -1081,8 +1091,8 @@
       const l2 = document.createElement('label'); l2.textContent='Insert';
       const pos = document.createElement('select');
       Object.assign(pos.style,{width:'100%',background:'#121821',border:'1px solid #2f3d51',color:'#e8eef8',borderRadius:'6px',padding:'6px'});
-      const insertableTitles = titles.filter((t)=>t !== '오픈포즈');
-      const opts = [{v:'__TOP__',t:'맨 위(오픈포즈 아래)'},{v:'__BOTTOM__',t:'맨 아래'}, ...insertableTitles.map((t)=>({v:t,t:`${t} 앞에`}))];
+      const insertableTitles = titles.filter((t)=>t !== 'OpenPose(refresh)');
+      const opts = [{v:'__TOP__',t:_nt('dialog.insert_at_top')||'맨 위(OpenPose(refresh) 아래)'},{v:'__BOTTOM__',t:_nt('dialog.insert_at_bottom')||'맨 아래'}, ...insertableTitles.map((t)=>({v:t,t:`${t} 앞에`}))];
       for(const o of opts){ const op=document.createElement('option'); op.value=o.v; op.textContent=o.t; pos.appendChild(op); }
       row2.append(l2,pos);
 
@@ -1091,9 +1101,9 @@
       const l3 = document.createElement('label'); l3.textContent='Del/Edit';
       const delSel = document.createElement('select');
       Object.assign(delSel.style,{width:'100%',background:'#121821',border:'1px solid #2f3d51',color:'#e8eef8',borderRadius:'6px',padding:'6px'});
-      const deletable = titles.filter((t)=>t !== '오픈포즈');
+      const deletable = titles.filter((t)=>t !== 'OpenPose(refresh)');
       if(!deletable.length){
-        const op=document.createElement('option'); op.value=''; op.textContent='삭제 가능한 프리셋 없음'; delSel.appendChild(op);
+        const op=document.createElement('option'); op.value=''; op.textContent=_nt('dialog.no_deletable_presets')||'삭제 가능한 프리셋 없음'; delSel.appendChild(op);
         delSel.disabled = true;
       } else {
         for(const t of deletable){ const op=document.createElement('option'); op.value=t; op.textContent=t; delSel.appendChild(op); }
@@ -1106,7 +1116,7 @@
 
       const info = document.createElement('div');
       info.className='mini';
-      info.textContent='포즈 JSON은 현재 편집 상태가 그대로 저장됩니다.';
+      info.textContent=_nt('dialog.pose_json_info')||'포즈 JSON은 현재 편집 상태가 그대로 저장됩니다.';
 
       const btns = document.createElement('div');
       Object.assign(btns.style,{display:'flex',justifyContent:'flex-end',gap:'8px',marginTop:'12px'});
@@ -1122,26 +1132,26 @@
         if(delSel.disabled) return;
         const target = (delSel.value||'').trim();
         if(!target) return;
-        if(!confirm(`'${target}' 프리셋을 삭제할까요?`)) return;
+        if(!confirm((_nt('dialog.confirm_delete')||"'%s' 프리셋을 삭제할까요?").replace('%s',target))) return;
         try{
           await deletePosePreset(target);
           window.parent.postMessage({modalId:state.modalId, nakoPosePresetSaved:true}, '*');
           close();
         }catch(err){
           console.error(err);
-          alert('프리셋 삭제 실패');
+          alert(_nt('dialog.delete_failed')||'프리셋 삭제 실패');
         }
       });
       ok.addEventListener('click', async ()=>{
         const title = (titleInput.value||'').trim();
-        if(!title){ alert('제목을 입력하세요.'); return; }
+        if(!title){ alert(_nt('dialog.enter_title')||'제목을 입력하세요.'); return; }
         try{
           await savePosePreset(title, currentPoseJsonString(), pos.value || '__TOP__');
           window.parent.postMessage({modalId:state.modalId, nakoPosePresetSaved:true}, '*');
           close();
         }catch(err){
           console.error(err);
-          alert('프리셋 저장 실패');
+          alert(_nt('dialog.save_failed')||'프리셋 저장 실패');
         }
       });
       titleInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); ok.click(); } });
@@ -1163,7 +1173,7 @@
     el.lw.addEventListener('input',()=>{ state.lineWidth=Number(el.lw.value||2); render(); });
     el.bgAlpha.addEventListener('input',()=>{ pushHistory(); state.bg.alpha = Number(el.bgAlpha.value || 1); render(); });
     document.getElementById('send').addEventListener('click',emit);
-    document.getElementById('savePreset').addEventListener('click',()=>{ openSavePresetDialog().catch((e)=>{ console.error(e); alert('프리셋 창을 열 수 없습니다.'); }); });
+    document.getElementById('savePreset').addEventListener('click',()=>{ openSavePresetDialog().catch((e)=>{ console.error(e); alert(_nt('dialog.cannot_open')||'프리셋 창을 열 수 없습니다.'); }); });
     document.getElementById('close').addEventListener('click',emit);
 
     el.bgLock.addEventListener('change',()=>{ pushHistory(); state.bg.locked = !!el.bgLock.checked; render(); });

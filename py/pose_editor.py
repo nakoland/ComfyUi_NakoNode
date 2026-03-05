@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 
-class NakoPoseEditorNode:
+class NakoOpenPoseEditor:
     @classmethod
     def INPUT_TYPES(cls):
         try:
@@ -663,9 +663,9 @@ class NakoPoseEditorNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "NakoPoseEditorNode": NakoPoseEditorNode,
+    "NakoOpenPoseEditor": NakoOpenPoseEditor,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "NakoPoseEditorNode": "Nako Pose Editor",
+    "NakoOpenPoseEditor": "OpenPose Editor(nako)",
 }

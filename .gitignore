@@ -1,0 +1,36 @@
+﻿# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Local runtime artifacts
+*.tmp
+*.bak
+
+# Claude-related local files
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+CLAUDE*.md

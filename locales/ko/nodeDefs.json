@@ -1,0 +1,20 @@
+{
+  "NakoOpenPoseEditor": {
+    "display_name": "오픈포즈 에디터(나코)",
+    "inputs": {
+      "background_image":        { "display_name": "배경 이미지" },
+      "pose_input_enabled":      { "display_name": "포즈 입력" },
+      "pose_json_input":         { "display_name": "포즈 JSON 입력", "tooltip": "OpenPose JSON 문자열 입력" },
+      "POSE_JSON":               { "display_name": "포즈 JSON" },
+      "POSE_KEYPOINT":           { "display_name": "포즈 키포인트" },
+      "positive":                { "display_name": "Positive" },
+      "negative":                { "display_name": "Negative" },
+      "controlnet_enabled":      { "display_name": "ControlNet" },
+      "controlnet_model":        { "display_name": "모델" },
+      "controlnet_strength":     { "display_name": "강도" },
+      "controlnet_start_percent":{ "display_name": "시작 %" },
+      "controlnet_end_percent":  { "display_name": "종료 %" },
+      "pose_tag_input":          { "display_name": "포즈 태그", "tooltip": "<pose-프리셋명:강도:시작%:종료%> 태그 파서" }
+    }
+  }
+}
