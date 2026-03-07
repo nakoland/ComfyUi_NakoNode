@@ -17,7 +17,7 @@ NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 
 for module_name in node_list:
-    imported_module = importlib.import_module(f".py.{module_name}")
+    imported_module = importlib.import_module(f".py.{module_name}", __name__)
     NODE_CLASS_MAPPINGS.update(imported_module.NODE_CLASS_MAPPINGS)
     NODE_DISPLAY_NAME_MAPPINGS.update(imported_module.NODE_DISPLAY_NAME_MAPPINGS)
 
